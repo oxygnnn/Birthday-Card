@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Happy Birthday Luminita!</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background: #d7ccc8 url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><rect width="100" height="100" fill="%23d7ccc8"/><path d="0 0h100v100H0z" fill="%23bcaaa4" opacity="0.15"/></svg>');
+            font-family: 'Courier New', Courier, monospace;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            overflow-x: hidden;
+            padding: 20px;
+        }
+
+        /* Card Perspective Container */
+        .card-container {
+            perspective: 1500px;
+            width: 100%;
+            max-width: 900px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 20px;
+        }
+
+        /* Closed Cover View */
+        .card-cover {
+            width: 380px;
+            height: 520px;
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.3);
+            cursor: pointer;
+            transition: transform 0.6s ease, box-shadow 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            border: 8px solid #fff;
+        }
+
+        .card-cover:hover {
+            transform: translateY(-5px) scale(1.02);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+        }
+
+        .card-cover img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .cover-hint {
+            position: absolute;
+            bottom: 15px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.7);
+            color: #fff;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            pointer-events: none;
+            letter-spacing: 1px;
+        }
+
+        /* Opened Spread View */
+        .card-spread {
+            display: none;
+            width: 100%;
+            max-width: 850px;
+            height: 550px;
+            background: #f4ebd9;
+            border-radius: 12px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.35);
+            position: relative;
+            flex-direction: row;
+            overflow: hidden;
+            border: 10px solid #fff;
+        }
+
+        .card-spread.active {
+            display: flex;
+            animation: openBook 0.8s ease-out forwards;
+        }
+
+        @keyframes openBook {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        /* Left Page: Letter */
+        .page-left {
+            flex: 1;
+            border-right: 2px dashed #bcaaa4;
+            padding: 20px;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #efebe9;
+        }
+
+        .envelope-container {
+            position: relative;
+            width: 100%;
+            max-width: 320px;
+            height: 440px;
+            cursor: pointer;
+        }
+
+        .envelope-img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 1;
+        }
+
+        .letter-img {
+            width: 80%;
+            position: absolute;
+            top: 15%;
+            left: 10%;
+            z-index: 2;
+            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            border-radius: 4px;
+        }
+
+        /* Letter Lifted State */
+        .letter-img.lifted {
+            top: -5%;
+            left: -5%;
+            width: 110%;
+            z-index: 10;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+            transform: scale(1.05);
+        }
+
+        /* Right Page: Cake & Candles */
+        .page-right {
+            flex: 1;
+            padding: 20px;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background-color: #f5f5f5;
+        }
+
+        .cake-container {
+            position: relative;
+            width: 100%;
+            max-width: 320px;
+            height: 380px;
+        }
+
+        .cake-img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        /* Separate Flame Elements */
+        .flame-element {
+            position: absolute;
+            width: 25px;
+            height: 45px;
+            background: radial-gradient(circle, #ffe082 20%, #ff8f00 70%, transparent 100%);
+            border-radius: 50% 50% 20% 20%;
+            filter: drop-shadow(0 0 8px #ff6f00);
+            transition: transform 0.1s ease, opacity 0.4s ease;
+            transform-origin: bottom center;
+        }
+
+        .flame-1 { top: 42%; left: 32%; }
+        .flame-2 { top: 40%; left: 48%; }
+        .flame-3 { top: 42%; left: 64%; }
+
+        .flame-element.bending {
+            transform: rotate(25deg) skewX(15deg) scaleY(0.8);
+        }
+
+        .flame-element.out {
+            opacity: 0;
+            transform: scale(0);
+        }
+
+        /* Controls & Feedback */
+        .controls {
+            margin-top: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            width: 100%;
+        }
+
+        .mic-meter-container {
+            width: 80%;
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .mic-meter-bar {
+            height: 100%;
+            width: 0%;
+            background: #ff4081;
+            transition: width 0.1s ease;
+        }
+
+        .btn {
+            background: #8d6e63;
+            color: #fff;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-family: inherit;
+            font-weight: bold;
+            font-size: 0.85rem;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.15);
+            transition: background 0.2s, transform 0.2s;
+        }
+
+        .btn:hover {
+            background: #6d4c41;
+            transform: translateY(-2px);
+        }
+
+        .btn-back {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            z-index: 20;
+            background: #5d4037;
+        }
+
+        /* Wish Card (Letter-like Pop-out) */
+        .wish-card {
+            display: none;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.5);
+            width: 85%;
+            background: #fff8e1;
+            border: 2px dashed #d7ccc8;
+            padding: 25px 15px;
+            border-radius: 8px;
+            box-shadow: 0 15px 30px rgba(0,0,0,0.3);
+            text-align: center;
+            z-index: 15;
+            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .wish-card.active {
+            display: block;
+            transform: translate(-50%, -50%) scale(1);
+        }
+
+        .wish-card h2 {
+            color: #ad1457;
+            font-size: 1.4rem;
+            margin-bottom: 10px;
+        }
+
+        .wish-card p {
+            color: #5d4037;
+            font-size: 0.95rem;
+            margin-bottom: 15px;
+        }
+
+        /* Canvas Confetti */
+        #confettiCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+            z-index: 100;
+        }
+
+        /* Responsive styling */
+        @media (max-width: 768px) {
+            .card-spread {
+                flex-direction: column;
+                height: auto;
+                max-height: 90vh;
+                overflow-y: auto;
+            }
+            .page-left {
+                border-right: none;
+                border-bottom: 2px dashed #bcaaa4;
+            }
+            .card-cover {
+                width: 300px;
+                height: 420px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <canvas id="confettiCanvas"></canvas>
+
+    <div class="card-container">
+        <!-- CLOSED COVER -->
+        <div class="card-cover" id="cardCover" onclick="openSpread()">
+            <img src="cover.jpg" alt="Cover Photo">
+            <div class="cover-hint">TAP TO OPEN ✦</div>
+        </div>
+
+        <!-- OPENED SPREAD -->
+        <div class="card-spread" id="cardSpread">
+            <button class="btn btn-back" onclick="closeSpread()">← Back</button>
+
+            <!-- LEFT: LETTER -->
+            <div class="page-left">
+                <div class="envelope-container" onclick="toggleLetter()">
+                    <img src="envelope.jpg" class="envelope-img" alt="Envelope">
+                    <img src="letter.jpg" class="letter-img" id="letterImg" alt="Letter">
+                </div>
+            </div>
+
+            <!-- RIGHT: CANDLES -->
+            <div class="page-right">
+                <div class="cake-container">
+                    <img src="cake.png" class="cake-img" alt="Cake">
+                    <div class="flame-element flame-1" id="flame1"></div>
+                    <div class="flame-element flame-2" id="flame2"></div>
+                    <div class="flame-element flame-3" id="flame3"></div>
+                </div>
+
+                <div class="controls" id="controlsArea">
+                    <div class="mic-meter-container" title="Microphone Level">
+                        <div class="mic-meter-bar" id="micMeter"></div>
+                    </div>
+                    <p style="font-size: 0.75rem; color: #666;">Blow into mic or hold button/spacebar</p>
+                    <button class="btn" id="holdBlowBtn">HOLD TO BLOW 💨</button>
+                </div>
+
+                <!-- POP-OUT WISH CARD -->
+                <div class="wish-card" id="wishCard">
+                    <h2>Make a wish, Luminita! ✨</h2>
+                    <p>May all your dreams come true! 🎈</p>
+                    <button class="btn" onclick="relightCandles()">Relight Candles 🕯️</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const cardCover = document.getElementById('cardCover');
+        const cardSpread = document.getElementById('cardSpread');
+        const letterImg = document.getElementById('letterImg');
+        const flames = [document.getElementById('flame1'), document.getElementById('flame2'), document.getElementById('flame3')];
+        const micMeter = document.getElementById('micMeter');
+        const controlsArea = document.getElementById('controlsArea');
+        const wishCard = document.getElementById('wishCard');
+        const holdBlowBtn = document.getElementById('holdBlowBtn');
+
+        let isBlown = false;
+        let blowTimer = null;
+        let audioContext, analyser, microphone, stream;
+
+        function openSpread() {
+            cardCover.style.display = 'none';
+            cardSpread.classList.add('active');
+            initMicrophone();
+        }
+
+        function closeSpread() {
+            cardSpread.classList.remove('active');
+            cardCover.style.display = 'block';
+        }
+
+        function toggleLetter() {
+            letterImg.classList.toggle('lifted');
+        }
+
+        function startBlowing() {
+            if (isBlown) return;
+            flames.forEach(f => f.classList.add('bending'));
+            
+            if (!blowTimer) {
+                blowTimer = setTimeout(() => {
+                    extinguishFlames();
+                }, 500);
+            }
+        }
+
+        function stopBlowing() {
+            if (isBlown) return;
+            flames.forEach(f => f.classList.remove('bending'));
+            if (blowTimer) {
+                clearTimeout(blowTimer);
+                blowTimer = null;
+            }
+        }
+
+        function extinguishFlames() {
+            isBlown = true;
+            flames.forEach(f => {
+                f.classList.remove('bending');
+                f.classList.add('out');
+            });
+            controlsArea.style.display = 'none';
+            wishCard.classList.add('active');
+            triggerConfetti();
+        }
+
+        function relightCandles() {
+            isBlown = false;
+            flames.forEach(f => f.classList.remove('out', 'bending'));
+            controlsArea.style.display = 'flex';
+            wishCard.classList.remove('active');
+        }
+
+        async function initMicrophone() {
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                analyser = audioContext.createAnalyser();
+                microphone = audioContext.createMediaStreamSource(stream);
+                microphone.connect(analyser);
+                analyser.fftSize = 256;
+
+                const bufferLength = analyser.frequencyBinCount;
+                const dataArray = new Uint8Array(bufferLength);
+
+                function checkBlow() {
+                    if (isBlown) return;
+                    analyser.getByteFrequencyData(dataArray);
+                    
+                    let sum = 0;
+                    for (let i = 0; i < bufferLength; i++) {
+                        sum += dataArray[i];
+                    }
+                    let average = sum / bufferLength;
+                    let percentage = Math.min(100, (average / 50) * 100);
+                    micMeter.style.width = percentage + '%';
+
+                    if (average > 35) {
+                        startBlowing();
+                    } else {
+                        stopBlowing();
+                    }
+                    requestAnimationFrame(checkBlow);
+                }
+                checkBlow();
+            } catch (err) {
+                console.warn("Microphone access blocked or unavailable. Fallback available.");
+            }
+        }
+
+        holdBlowBtn.addEventListener('mousedown', startBlowing);
+        holdBlowBtn.addEventListener('mouseup', stopBlowing);
+        holdBlowBtn.addEventListener('touchstart', (e) => { e.preventDefault(); startBlowing(); });
+        holdBlowBtn.addEventListener('touchend', stopBlowing);
+
+        window.addEventListener('keydown', (e) => {
+            if (e.code === 'Space' && !e.repeat) startBlowing();
+        });
+        window.addEventListener('keyup', (e) => {
+            if (e.code === 'Space') stopBlowing();
+        });
+
+        function triggerConfetti() {
+            const canvas = document.getElementById('confettiCanvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+
+            const pieces = [];
+            const colors = ['#f44336', '#e91e63', '#9c27b0', '#673ab7', '#3f51b5', '#2196f3', '#03a9f4', '#00bcd4', '#009688', '#4caf50', '#8bc34a', '#cddc39', '#ffeb3b', '#ffc107', '#ff9800'];
+
+            for (let i = 0; i < 100; i++) {
+                pieces.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height - canvas.height,
+                    size: Math.random() * 10 + 5,
+                    color: colors[Math.floor(Math.random() * colors.length)],
+                    speed: Math.random() * 5 + 2,
+                    rotation: Math.random() * 360
+                });
+            }
+
+            function draw() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                pieces.forEach(p => {
+                    ctx.save();
+                    ctx.fillStyle = p.color;
+                    ctx.translate(p.x, p.y);
+                    ctx.rotate(p.rotation);
+                    ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size);
+                    ctx.restore();
+
+                    p.y += p.speed;
+                    p.rotation += 2;
+                });
+
+                if (pieces.some(p => p.y < canvas.height)) {
+                    requestAnimationFrame(draw);
+                } else {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                }
+            }
+            draw();
+        }
+    </script>
+</body>
+</html>
